@@ -79,16 +79,13 @@ for i in range(1, columns*rows +1):
     plt.imshow(layer1[:,i-1].reshape(28,14),cmap='gray')
 plt.show()
 
-# Commented out IPython magic to ensure Python compatibility.
 import numpy as np
 import matplotlib.pyplot as plt
-# % matplotlib inline
-# A thing of beauty is a joy forever
 import seaborn as sns
 sns.set()
 sns.set_palette("husl")
 
-C = 10 # We need 4 clusters
+C = 10 # We need 10 clusters
 m = 2 # This is arbitrary
 w = []
 for layer in autoencoder.layers:
@@ -100,17 +97,11 @@ data = np.array(w[2][0])
 print(data.shape)
 
 def initialize_memberships(data, C):
-    """Returns an NxC array of randomly assigned memberships."""
     N, _ = data.shape
-    # Create a random array of shape (N, C)
     mems = np.random.random((N, C))   
-    # Divide by the sum along axis 1 so that the numbers sum up to 1
     return mems / mems.sum(axis=1, keepdims=True)
 
 def update_centres(data, memberships, m):
-    """Returns new centres from given data points and memberships."""
-    # Notice the equation for cj.
-    # Isn't that plain old matrix multiplication?
     mems = memberships ** m
     # We first calculate  δij^m / ∑ δij^m as weights
     weights = mems / mems.sum(axis=0)
@@ -118,23 +109,15 @@ def update_centres(data, memberships, m):
     return np.dot(weights.T, data)
 
 def get_distances(data, centres):
-    """Returns distances between each point and every centre."""
-    # Remember Life without Loops? Let's build upon it.
-    # Please read through the numpy docs on broadcasting,
-    # particularly the last example about outer addition
-    # https://docs.scipy.org/doc/numpy-1.13.0/user/basics.broadcasting.html
     return np.sqrt(((data[:, None] - centres)**2).sum(axis=2))
 
 def update_memberships(data, centres, m):
-    """Update the memberships according to new centres."""
-    # You might have got it by now. Broadcasting rocks!
     dist = get_distances(data, centres)
     dist = dist[:, None, :] / dist[:, :, None]
     dist = dist ** (2/(m-1))
     return 1/dist.sum(axis=1)
 
 def fcmeans(data, C, m):
-    """The Fuzzy C-Means algorithm."""
     memberships = initialize_memberships(data, C)
     initial_centres = update_centres(data, memberships, m)
     old_memberships = np.zeros_like(memberships)
